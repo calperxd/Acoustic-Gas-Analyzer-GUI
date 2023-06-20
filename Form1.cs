@@ -69,7 +69,7 @@ namespace WindowsFormsApp1
             string[] ports = SerialPort.GetPortNames();
             cbPort.Items.AddRange(ports);
             btnClose.Enabled = false;
-            btnDownload.Enabled = false;
+            btnDownload.Enabled = true;
             btnAmostragem.Enabled = false;
             txtTime.Enabled = false;
             btnPlus.Enabled = false;
@@ -172,31 +172,28 @@ namespace WindowsFormsApp1
 
         private void btnDownload_Click(object sender, EventArgs e)
         {
-            string strExeFilePath = AppDomain.CurrentDomain.BaseDirectory;
-            string strWorkPath;
-            // Trecho para verificar os index de arquivos diponíveis
-            while (true)
+            // Verifica se dataIn está vazio
+            if (string.IsNullOrEmpty(dataIn))
             {
-                strWorkPath = Path.Combine(strExeFilePath, $"Amostra{FileIndexCounter}.csv");
-
-                // Verifica se o arquivo já existe
-                if (File.Exists(strWorkPath))
-                {
-                    // Incrementa o índice e tenta novamente
-                    FileIndexCounter++;
-                }
-                else
-                {
-                    // Sai do loop se encontrar um nome de arquivo disponível
-                    break;
-                }
+                // Se estiver vazio, exibe uma mensagem para o usuário e retorna
+                MessageBox.Show("Não há dados disponíveis para serem salvos.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            string[] arrayOfSamples = dataIn.Split('\n');
-            string[] updatedArray = Array.ConvertAll(arrayOfSamples, s => s.Replace("\r", ""));
-            list.AddRange(updatedArray);
-            File.WriteAllLines(strWorkPath, list);
-            list.Clear();
-            dataIn = "";
+
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "CSV file (*.csv)|*.csv";
+            saveFileDialog.Title = "Save data file";
+            saveFileDialog.FileName = $"Amostra{FileIndexCounter}.csv";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string strWorkPath = saveFileDialog.FileName;
+                string[] arrayOfSamples = dataIn.Split('\n');
+                string[] updatedArray = Array.ConvertAll(arrayOfSamples, s => s.Replace("\r", ""));
+                list.AddRange(updatedArray);
+                File.WriteAllLines(strWorkPath, list);
+                list.Clear();
+                dataIn = "";
+            }
         }
 
 
